@@ -5,7 +5,10 @@ from typing import Any, List, Literal, TypedDict
 
 import gradio as gr
 import mellea
-from mellea import generative
+from mellea import generative, start_session
+from mellea import MelleaSession
+from mellea.backends.ollama import OllamaModelBackend
+
 
 
 class CocktailRecipe(TypedDict):
@@ -25,11 +28,12 @@ class CocktailRecipe(TypedDict):
     pro_tip: str  # A secret detail about the technique
 
 
-session = mellea.start_session()
+m = mellea.MelleaSession(backend=OllamaModelBackend(
+        model_id="gemma3:4b",))
 
 
 @generative
-def generate_cocktail_recipe(m: Any, user_vibe: str) -> CocktailRecipe:
+def generate_cocktail_recipe(user_vibe: str) -> CocktailRecipe:
     """
     You are The Strict Mixologist, a world-class bartender and flavor architect.
     Given a user's vibe, create a precise cocktail recipe that matches the mood.
@@ -72,7 +76,7 @@ def format_recipe(recipe: CocktailRecipe) -> str:
 
 
 def generate(user_vibe: str) -> str:
-    recipe = generate_cocktail_recipe(session, user_vibe)
+    recipe = generate_cocktail_recipe(m, user_vibe=user_vibe)
     return format_recipe(recipe)
 
 
@@ -93,4 +97,5 @@ with gr.Blocks(title="The Strict Mixologist") as demo:
 
 
 if __name__ == "__main__":
+    m = start_session()
     demo.launch()
